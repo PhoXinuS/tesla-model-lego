@@ -8,15 +8,18 @@ from ev3dev2.sensor import INPUT_1, INPUT_2,INPUT_3
 from ev3dev2.sensor.lego import TouchSensor, ColorSensor
 
 # myli black jako blue
+#wykrywa dobrze red, yellow, blue tak sobie 
 
 m_right = LargeMotor(OUTPUT_A)
 m_left = LargeMotor(OUTPUT_B)
+lift = MediumMotor(OUTPUT_C)
 
 s_right = ColorSensor(INPUT_2)
 s_left = ColorSensor(INPUT_3)
 speed = -6
 m_right.off()
 m_left.off()
+lift.on_for_seconds(SpeedRPM(200), 5)
 while True:
 	print('Color 1 ' + str(s_right.rgb) + ' detected as ' + str(s_right.color_name) + '.')
 	print('Color 2 ' + str(s_left.rgb) + ' detected as ' + str(s_left.color_name) + '.')
