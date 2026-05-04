@@ -12,7 +12,7 @@ m_left = LargeMotor(OUTPUT_B)
 
 s_right = ColorSensor(INPUT_2)
 s_left = ColorSensor(INPUT_3)
-
+turn=1
 speed = -10
 last_turn = 0
 m_right.off()
@@ -25,29 +25,48 @@ while True:
 			print('forward')
 			m_right.on(speed)
 			m_left.on(speed)
-			sleep(0.01)
 		if (str(s_right.color_name) == "Black" and str(s_left.color_name) == "Black"):
 			print('forward_crossing')
 			m_right.on(speed)
 			m_left.on(speed)
-			sleep(0.01)
 		if (str(s_right.color_name) == "Black" and str(s_left.color_name) == "White"):
-			print('right_turn')
-			m_right.on(speed*-1)
-			m_left.on(speed*-1)
-			sleep(0.3)
-			m_right.on(speed*-1)
-			m_left.on(speed)
-			sleep(0.5)
+			if turn == 1:
+				print('right_turn')
+				m_right.on(speed*-1)
+				m_left.on(speed*-1)
+				sleep(0.5)
+				m_right.on(speed*-1)
+				m_left.on(speed)
+				sleep(0.25)
+				turn = 0
+			else:
+				print('right_turn')
+				m_right.on(speed*-1)
+				m_left.on(speed*-1)
+				sleep(0.5)
+				m_right.on(speed*-1)
+				m_left.on(speed)
+				sleep(0.5)
+				turn = 1
 		if (str(s_right.color_name) == "White" and str(s_left.color_name) == "Black"):
-			print('left_turn')
-			m_right.on(speed*-1)
-			m_left.on(speed*-1)
-			sleep(0.3)
-			m_right.on(speed)
-			m_left.on(speed*-1)
-			sleep(0.5)
-		
+			if turn == 1:
+				print('left_turn')
+				m_right.on(speed*-1)
+				m_left.on(speed*-1)
+				sleep(0.5)
+				m_right.on(speed)
+				m_left.on(speed*-1)
+				sleep(0.25)
+				turn = 0
+			else:
+				print('left_turn')
+				m_right.on(speed*-1)
+				m_left.on(speed*-1)
+				sleep(0.5)
+				m_right.on(speed)
+				m_left.on(speed*-1)
+				sleep(0.5)
+				turn = 1
 
 
 
