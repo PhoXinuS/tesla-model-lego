@@ -8,6 +8,8 @@ from time import sleep
 # myli black jako blue
 # wykrywa dobrze red, yellow, blue tak sobie 
 
+# TODO: prawy czujnik nie wykryl czerwonego
+
 BACKGROUND_COLOR = 'White'
 T_PICKUP_COLOR = 'Yellow'
 T_DELIVER_COLOR = 'Red'
