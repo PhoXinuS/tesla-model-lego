@@ -9,18 +9,22 @@ from time import sleep
 # wykrywa dobrze red, yellow, blue tak sobie 
 
 BACKGROUND_COLOR = 'White'
-T_PICKUP_COLOR = 'Red'
-T_DELIVER_COLOR = 'Yellow'
+T_PICKUP_COLOR = 'Green'
+T_DELIVER_COLOR = 'Red'
 
 SPEED = -6
 APPROACH_SPEED = -6
 TURN_SPEED = 10
 
-TURN_TIME = 0.5
-TURN_AROUND_TIME = 1.5
-PICKUP_REVERSE_TIME = 0.5
-LIFT_TIME = 2.0
-LIFT_RPM = 200
+TURN_TIME = 1.7
+FORWARD_BEFORE_TURN_TIME = 1.2
+TURN_AROUND_TIME = 3.6
+AT_BLOCK_REVERSE_TIME = 2.0
+LIFT_TIME = 0.5
+LIFT_RPM = 20
+BACK_TO_LIFT_TIME = 3.0
+FORWARD_AFTER_LIFT_TIME = 2.0
+FORWARD_TO_DROP_TIME = 2.0
 
 m_right = LargeMotor(OUTPUT_A)
 m_left = LargeMotor(OUTPUT_B)
@@ -42,37 +46,34 @@ turn_side = None  # 'right' or 'left'
 
 print("Line follower started")
 
+sleep(2)
+
 while True:
-	right = s_right.color_name
-	left = s_left.color_name
-	print(f"Right: {right}, Left: {left}   state: {current_state}")
-	print('Color 1 ' + str(s_right.rgb) + ' detected as ' + str(s_right.color_name) + '.')
-	print('Color 2 ' + str(s_left.rgb) + ' detected as ' + str(s_left.color_name) + '.')
+	print('Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name) + ' | state: ' + str(current_state))
 
 	# 1. Main line follower logic
 	if current_state == STATE_FOLLOW:
-		if right == BACKGROUND_COLOR and left == BACKGROUND_COLOR:
+		if s_right.color_name == BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
 			# Both white
 			print('forward')
 			m_right.on(SPEED)
 			m_left.on(SPEED)
 
-		elif right != BACKGROUND_COLOR and left != BACKGROUND_COLOR:
+		if s_right.color_name == T_PICKUP_COLOR or s_left.color_name == T_PICKUP_COLOR:
+			# found the pickup point
+			current_state = STATE_BRANCH_ENTER
+			task_type = 'pickup'
+			turn_side = 'right' if s_right.color_name == T_PICKUP_COLOR else 'left'
+			m_right.off()
+			m_left.off()
+			continue
+		elif s_right.color_name != BACKGROUND_COLOR and s_left.color_name != BACKGROUND_COLOR:
 			# Both detect something
-			if right == T_PICKUP_COLOR or left == T_PICKUP_COLOR:
-				# found the pickup point
-				current_state = STATE_BRANCH_ENTER
-				task_type = 'pickup'
-				turn_side = 'right' if right == T_PICKUP_COLOR else 'left'
-				m_right.off()
-				m_left.off()
-				continue
-
-			elif right == T_DELIVER_COLOR or left == T_DELIVER_COLOR:
+			if s_right.color_name == T_DELIVER_COLOR or s_left.color_name == T_DELIVER_COLOR:
 				# found the delivery point
 				current_state = STATE_BRANCH_ENTER
 				task_type = 'deliver'
-				turn_side = 'right' if right == T_DELIVER_COLOR else 'left'
+				turn_side = 'right' if s_right.color_name == T_DELIVER_COLOR else 'left'
 				m_right.off()
 				m_left.off()
 				continue
@@ -82,14 +83,14 @@ while True:
 				m_right.on(SPEED)
 				m_left.on(SPEED)
 
-		elif right != BACKGROUND_COLOR and left == BACKGROUND_COLOR:
+		elif s_right.color_name != BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
 			print('right_turn')
 			m_right.on(SPEED * -1)
 			m_left.on(SPEED * -1)
 			m_right.on(SPEED * -1)
 			m_left.on(SPEED)
 
-		elif right == BACKGROUND_COLOR and left != BACKGROUND_COLOR:
+		elif s_right.color_name == BACKGROUND_COLOR and s_left.color_name != BACKGROUND_COLOR:
 			print('left_turn')
 			m_right.on(SPEED * -1)
 			m_left.on(SPEED * -1)
@@ -99,11 +100,19 @@ while True:
 	# 2. Turn into the branch
 	elif current_state == STATE_BRANCH_ENTER:
 		if turn_side == 'right':
-			# turn right in place
+			print('Turning right into a branch  ')
+			m_right.on(SPEED)
+			m_left.on(SPEED)
+			sleep(FORWARD_BEFORE_TURN_TIME)
+
 			m_right.on(TURN_SPEED)
 			m_left.on(-TURN_SPEED)
 		else:
-			# turn left in place
+			print('Turning right into a branch  ')
+			m_right.on(SPEED)
+			m_left.on(SPEED)
+			sleep(FORWARD_BEFORE_TURN_TIME)
+
 			m_right.on(-TURN_SPEED)
 			m_left.on(TURN_SPEED)
 		sleep(TURN_TIME)
@@ -116,28 +125,28 @@ while True:
 	elif current_state == STATE_APPROACH:
 		block_color = T_PICKUP_COLOR if task_type == 'pickup' else T_DELIVER_COLOR
 
-		if right == block_color and left == block_color:
+		if s_right.color_name == block_color and s_left.color_name == block_color:
 			# found the block, stop and prepare to lift
 			m_right.off()
 			m_left.off()
 			current_state = STATE_AT_BLOCK
 			continue
 
-		if right == BACKGROUND_COLOR and left == BACKGROUND_COLOR:
+		if s_right.color_name == BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
 			m_right.on(APPROACH_SPEED)
 			m_left.on(APPROACH_SPEED)
 
-		elif right != BACKGROUND_COLOR and left != BACKGROUND_COLOR:
+		elif s_right.color_name != BACKGROUND_COLOR and s_left.color_name != BACKGROUND_COLOR:
 			m_right.on(APPROACH_SPEED)
 			m_left.on(APPROACH_SPEED)
 
-		elif right != BACKGROUND_COLOR and left == BACKGROUND_COLOR:
+		elif s_right.color_name != BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
 			m_right.on(APPROACH_SPEED * -1)
 			m_left.on(APPROACH_SPEED * -1)
 			m_right.on(APPROACH_SPEED * -1)
 			m_left.on(APPROACH_SPEED)
 
-		elif right == BACKGROUND_COLOR and left != BACKGROUND_COLOR:
+		elif s_right.color_name == BACKGROUND_COLOR and s_left.color_name != BACKGROUND_COLOR:
 			m_right.on(APPROACH_SPEED * -1)
 			m_left.on(APPROACH_SPEED * -1)
 			m_right.on(APPROACH_SPEED)
@@ -148,60 +157,72 @@ while True:
 		# go backwards
 		m_right.on(-APPROACH_SPEED)
 		m_left.on(-APPROACH_SPEED)
-		sleep(PICKUP_REVERSE_TIME)
+		sleep(AT_BLOCK_REVERSE_TIME)
+		
+		print('turn started')
+		# turn around
+		m_right.on(TURN_SPEED)
+		m_left.on(-TURN_SPEED)
+		sleep(TURN_AROUND_TIME)
+		print('end turn')
+		m_right.off()
+		m_left.off()
+
+		while(not(s_right.color_name == block_color and s_left.color_name == block_color)):
+			# back into the color block again
+			m_right.on(APPROACH_SPEED * -1)
+			m_left.on(APPROACH_SPEED  * -1)
 		m_right.off()
 		m_left.off()
 
 		# pickup/deliver
 		if task_type == 'pickup':
+			print("payload pickup")
 			lift.on_for_seconds(SpeedRPM(LIFT_RPM), LIFT_TIME)
 		else:
+			print("payload drop")
+			m_right.on(APPROACH_SPEED)
+			m_left.on(APPROACH_SPEED)
+			sleep(FORWARD_TO_DROP_TIME)
 			lift.on_for_seconds(SpeedRPM(-LIFT_RPM), LIFT_TIME)
-
-		# turn around
-		m_right.on(TURN_SPEED)
-		m_left.on(-TURN_SPEED)
-		sleep(TURN_AROUND_TIME)
-		m_right.off()
-		m_left.off()
+			m_right.on(APPROACH_SPEED)
+			m_left.on(APPROACH_SPEED)
+			sleep(FORWARD_TO_DROP_TIME)
+			m_left.off()
+			m_right.off()
 
 		current_state = STATE_RETURN_TO_T
 		continue
 
 	# 5. Come back to the T - junction
 	elif current_state == STATE_RETURN_TO_T:
-		if right != BACKGROUND_COLOR and left != BACKGROUND_COLOR:
-			m_right.off()
-			m_left.off()
-			current_state = STATE_RETURN_TO_LINE
-			continue
+		print("returning to T junction")
+		m_right.on(APPROACH_SPEED)
+		m_left.on(APPROACH_SPEED)
+		sleep(FORWARD_AFTER_LIFT_TIME)
 
-		elif right == BACKGROUND_COLOR and left == BACKGROUND_COLOR:
+		while(s_right.color_name == BACKGROUND_COLOR or s_left.color_name == BACKGROUND_COLOR):
+			print("looking for straight line")
+			# back into the T junction
 			m_right.on(APPROACH_SPEED)
 			m_left.on(APPROACH_SPEED)
+		current_state = STATE_RETURN_TO_LINE
+		continue
 
-		elif right != BACKGROUND_COLOR and left == BACKGROUND_COLOR:
-			m_right.on(APPROACH_SPEED * -1)
-			m_left.on(APPROACH_SPEED * -1)
-			m_right.on(APPROACH_SPEED * -1)
-			m_left.on(APPROACH_SPEED)
-
-		elif right == BACKGROUND_COLOR and left != BACKGROUND_COLOR:
-			m_right.on(APPROACH_SPEED * -1)
-			m_left.on(APPROACH_SPEED * -1)
-			m_right.on(APPROACH_SPEED)
-			m_left.on(APPROACH_SPEED * -1)
 
 	# 6. Come back to the main line (turn back in the opposite direction)
 	elif current_state == STATE_RETURN_TO_LINE:
+		m_right.on(SPEED)
+		m_left.on(SPEED)
+		sleep(FORWARD_BEFORE_TURN_TIME)
 		if turn_side == 'right':
 			# turn left to rejoin line
-			m_right.on(-TURN_SPEED)
-			m_left.on(TURN_SPEED)
-		else:
-			# turn right
 			m_right.on(TURN_SPEED)
 			m_left.on(-TURN_SPEED)
+		else:
+			# turn right
+			m_right.on(-TURN_SPEED)
+			m_left.on(TURN_SPEED)
 		sleep(TURN_TIME)
 		m_right.off()
 		m_left.off()
