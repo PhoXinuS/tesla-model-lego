@@ -9,7 +9,7 @@ from time import sleep
 # wykrywa dobrze red, yellow, blue tak sobie 
 
 BACKGROUND_COLOR = 'White'
-T_PICKUP_COLOR = 'Green'
+T_PICKUP_COLOR = 'Yellow'
 T_DELIVER_COLOR = 'Red'
 
 SPEED = -6
@@ -55,7 +55,7 @@ while True:
 	if current_state == STATE_FOLLOW:
 		if s_right.color_name == BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
 			# Both white
-			print('forward')
+			#print('forward')
 			m_right.on(SPEED)
 			m_left.on(SPEED)
 
@@ -79,19 +79,19 @@ while True:
 				continue
 			else:
 				# X- junction
-				print('forward_crossing')
+				#print('forward_crossing')
 				m_right.on(SPEED)
 				m_left.on(SPEED)
 
 		elif s_right.color_name != BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
-			print('right_turn')
+			#print('right_turn')
 			m_right.on(SPEED * -1)
 			m_left.on(SPEED * -1)
 			m_right.on(SPEED * -1)
 			m_left.on(SPEED)
 
 		elif s_right.color_name == BACKGROUND_COLOR and s_left.color_name != BACKGROUND_COLOR:
-			print('left_turn')
+			#print('left_turn')
 			m_right.on(SPEED * -1)
 			m_left.on(SPEED * -1)
 			m_right.on(SPEED)
