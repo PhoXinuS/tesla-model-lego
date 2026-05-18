@@ -26,7 +26,7 @@ AT_BLOCK_REVERSE_TIME = 2.0
 LIFT_TIME = 0.5
 LIFT_RPM = 20
 BACK_TO_LIFT_TIME = 3.0
-FORWARD_AFTER_LIFT_TIME = 2.0
+FORWARD_AFTER_LIFT_TIME = 1.0
 FORWARD_TO_DROP_TIME = 4.0
 
 m_right = LargeMotor(OUTPUT_A)
@@ -52,7 +52,6 @@ print("Line follower started")
 sleep(2)
 
 while True:
-	print(s_left.color_name )
 	print('Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name) + ' | state: ' + str(current_state))
 
 	# 1. Main line follower logic
@@ -169,12 +168,14 @@ while True:
 		print('end turn')
 		m_right.off()
 		m_left.off()
-
-		while(not(s_right.color_name == block_color and s_left.color_name == block_color)):
+		m_right.on(APPROACH_SPEED * -1)
+		m_left.on(APPROACH_SPEED  * -1)
+		sleep(AT_BLOCK_REVERSE_TIME * 2)
+		'''while(not(s_right.color_name == block_color and s_left.color_name == block_color)):
 			print('backing into a block | ' + 'Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name))
 			# back into the color block again
 			m_right.on(APPROACH_SPEED * -1)
-			m_left.on(APPROACH_SPEED  * -1)
+			m_left.on(APPROACH_SPEED  * -1)'''
 		m_right.off()
 		m_left.off()
 
@@ -202,35 +203,39 @@ while True:
 		print("returning to T junction")
 		m_right.on(APPROACH_SPEED)
 		m_left.on(APPROACH_SPEED)
-		sleep(FORWARD_AFTER_LIFT_TIME)
-
-
-		while not(s_right.color_name != LINE_COLOR and s_left.color_name != LINE_COLOR):
-				
+		sleep(FORWARD_AFTER_LIFT_TIME)	
+		while current_state == STATE_RETURN_TO_T:
+			print('Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name) + ' | state: ' + str(current_state))
+			if s_right.color_name == LINE_COLOR and s_left.color_name == LINE_COLOR:
+				m_right.off()
+				m_left.off()
+				current_state = STATE_RETURN_TO_LINE
+				continue
 			if s_right.color_name == BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
+				print("fwd")
 				m_right.on(APPROACH_SPEED)
 				m_left.on(APPROACH_SPEED)
 
 			elif s_right.color_name != BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
+				print("right")
 				m_right.on(APPROACH_SPEED * -1)
 				m_left.on(APPROACH_SPEED * -1)
 				m_right.on(APPROACH_SPEED * -1)
 				m_left.on(APPROACH_SPEED)
-
+				sleep(1)
 			elif s_right.color_name == BACKGROUND_COLOR and s_left.color_name != BACKGROUND_COLOR:
+				print("left")
 				m_right.on(APPROACH_SPEED * -1)
 				m_left.on(APPROACH_SPEED * -1)
 				m_right.on(APPROACH_SPEED)
 				m_left.on(APPROACH_SPEED * -1)
+				sleep(1)
 
 			else:
+				print("def")
 				m_right.on(APPROACH_SPEED)
 				m_left.on(APPROACH_SPEED)
 
-		m_right.off()
-		m_left.off()
-		current_state = STATE_RETURN_TO_LINE
-		continue
 
 
 	# 6. Come back to the main line (turn back in the opposite direction)
