@@ -13,6 +13,7 @@ from time import sleep
 BACKGROUND_COLOR = 'White'
 T_PICKUP_COLOR = 'Yellow'
 T_DELIVER_COLOR = 'Red'
+LINE_COLOR = 'Black'
 
 SPEED = -6
 APPROACH_SPEED = -6
@@ -20,13 +21,13 @@ TURN_SPEED = 10
 
 TURN_TIME = 1.7
 FORWARD_BEFORE_TURN_TIME = 1.2
-TURN_AROUND_TIME = 3.6
+TURN_AROUND_TIME = 3.8
 AT_BLOCK_REVERSE_TIME = 2.0
 LIFT_TIME = 0.5
 LIFT_RPM = 20
 BACK_TO_LIFT_TIME = 3.0
 FORWARD_AFTER_LIFT_TIME = 2.0
-FORWARD_TO_DROP_TIME = 2.0
+FORWARD_TO_DROP_TIME = 4.0
 
 m_right = LargeMotor(OUTPUT_A)
 m_left = LargeMotor(OUTPUT_B)
@@ -51,6 +52,7 @@ print("Line follower started")
 sleep(2)
 
 while True:
+	print(s_left.color_name )
 	print('Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name) + ' | state: ' + str(current_state))
 
 	# 1. Main line follower logic
@@ -61,7 +63,8 @@ while True:
 			m_right.on(SPEED)
 			m_left.on(SPEED)
 
-		if s_right.color_name == T_PICKUP_COLOR or s_left.color_name == T_PICKUP_COLOR:
+		elif s_right.color_name == T_PICKUP_COLOR or s_left.color_name == T_PICKUP_COLOR:
+			print('FOUND PICKUP' + 'Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name))
 			# found the pickup point
 			current_state = STATE_BRANCH_ENTER
 			task_type = 'pickup'
@@ -69,21 +72,18 @@ while True:
 			m_right.off()
 			m_left.off()
 			continue
+		elif s_right.color_name == T_DELIVER_COLOR or s_left.color_name == T_DELIVER_COLOR:
+			print('FOUND DELIVERY' + 'Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name))
+			# found the delivery point
+			current_state = STATE_BRANCH_ENTER
+			task_type = 'deliver'
+			turn_side = 'right' if s_right.color_name == T_DELIVER_COLOR else 'left'
+			m_right.off()
+			m_left.off()
+			continue
 		elif s_right.color_name != BACKGROUND_COLOR and s_left.color_name != BACKGROUND_COLOR:
-			# Both detect something
-			if s_right.color_name == T_DELIVER_COLOR or s_left.color_name == T_DELIVER_COLOR:
-				# found the delivery point
-				current_state = STATE_BRANCH_ENTER
-				task_type = 'deliver'
-				turn_side = 'right' if s_right.color_name == T_DELIVER_COLOR else 'left'
-				m_right.off()
-				m_left.off()
-				continue
-			else:
-				# X- junction
-				#print('forward_crossing')
-				m_right.on(SPEED)
-				m_left.on(SPEED)
+			m_right.on(SPEED)
+			m_left.on(SPEED)
 
 		elif s_right.color_name != BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
 			#print('right_turn')
@@ -171,6 +171,7 @@ while True:
 		m_left.off()
 
 		while(not(s_right.color_name == block_color and s_left.color_name == block_color)):
+			print('backing into a block | ' + 'Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name))
 			# back into the color block again
 			m_right.on(APPROACH_SPEED * -1)
 			m_left.on(APPROACH_SPEED  * -1)
@@ -203,11 +204,31 @@ while True:
 		m_left.on(APPROACH_SPEED)
 		sleep(FORWARD_AFTER_LIFT_TIME)
 
-		while(s_right.color_name == BACKGROUND_COLOR or s_left.color_name == BACKGROUND_COLOR):
-			print("looking for straight line")
-			# back into the T junction
-			m_right.on(APPROACH_SPEED)
-			m_left.on(APPROACH_SPEED)
+
+		while not(s_right.color_name != LINE_COLOR and s_left.color_name != LINE_COLOR):
+				
+			if s_right.color_name == BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
+				m_right.on(APPROACH_SPEED)
+				m_left.on(APPROACH_SPEED)
+
+			elif s_right.color_name != BACKGROUND_COLOR and s_left.color_name == BACKGROUND_COLOR:
+				m_right.on(APPROACH_SPEED * -1)
+				m_left.on(APPROACH_SPEED * -1)
+				m_right.on(APPROACH_SPEED * -1)
+				m_left.on(APPROACH_SPEED)
+
+			elif s_right.color_name == BACKGROUND_COLOR and s_left.color_name != BACKGROUND_COLOR:
+				m_right.on(APPROACH_SPEED * -1)
+				m_left.on(APPROACH_SPEED * -1)
+				m_right.on(APPROACH_SPEED)
+				m_left.on(APPROACH_SPEED * -1)
+
+			else:
+				m_right.on(APPROACH_SPEED)
+				m_left.on(APPROACH_SPEED)
+
+		m_right.off()
+		m_left.off()
 		current_state = STATE_RETURN_TO_LINE
 		continue
 
