@@ -222,14 +222,12 @@ while True:
 				m_left.on(APPROACH_SPEED * -1)
 				m_right.on(APPROACH_SPEED * -1)
 				m_left.on(APPROACH_SPEED)
-				sleep(1)
 			elif s_right.color_name == BACKGROUND_COLOR and s_left.color_name != BACKGROUND_COLOR:
 				print("left")
 				m_right.on(APPROACH_SPEED * -1)
 				m_left.on(APPROACH_SPEED * -1)
 				m_right.on(APPROACH_SPEED)
 				m_left.on(APPROACH_SPEED * -1)
-				sleep(1)
 
 			else:
 				print("def")
