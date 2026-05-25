@@ -14,6 +14,10 @@ BACKGROUND_COLOR = 'White'
 T_PICKUP_COLOR = 'Yellow'
 T_DELIVER_COLOR = 'Red'
 LINE_COLOR = 'Black'
+LINE_COLOR2 = 'Blue'
+LINE_COLOR3 = 'Brown'
+
+
 
 SPEED = -6
 APPROACH_SPEED = -6
@@ -21,13 +25,13 @@ TURN_SPEED = 10
 
 TURN_TIME = 1.7
 FORWARD_BEFORE_TURN_TIME = 1.2
-TURN_AROUND_TIME = 3.8
+TURN_AROUND_TIME = 3.5
 AT_BLOCK_REVERSE_TIME = 2.0
 LIFT_TIME = 0.5
 LIFT_RPM = 20
 BACK_TO_LIFT_TIME = 3.0
 FORWARD_AFTER_LIFT_TIME = 1.0
-FORWARD_TO_DROP_TIME = 4.0
+FORWARD_TO_DROP_TIME = 7.0
 
 m_right = LargeMotor(OUTPUT_A)
 m_left = LargeMotor(OUTPUT_B)
@@ -44,7 +48,7 @@ STATE_RETURN_TO_T = 'return_to_t'
 STATE_RETURN_TO_LINE = 'return_to_line'
 
 current_state = STATE_FOLLOW
-task_type = None  # 'pickup' or 'deliver'
+task_type = 'pickup'  # 'pickup' or 'deliver'
 turn_side = None  # 'right' or 'left'
 
 print("Line follower started")
@@ -63,10 +67,9 @@ while True:
 			m_left.on(SPEED)
 
 		elif s_right.color_name == T_PICKUP_COLOR or s_left.color_name == T_PICKUP_COLOR:
-			print('FOUND PICKUP' + 'Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name))
+			print('FOUND PICKUP ' + 'Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name))
 			# found the pickup point
 			current_state = STATE_BRANCH_ENTER
-			task_type = 'pickup'
 			turn_side = 'right' if s_right.color_name == T_PICKUP_COLOR else 'left'
 			m_right.off()
 			m_left.off()
@@ -75,7 +78,6 @@ while True:
 			print('FOUND DELIVERY' + 'Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name))
 			# found the delivery point
 			current_state = STATE_BRANCH_ENTER
-			task_type = 'deliver'
 			turn_side = 'right' if s_right.color_name == T_DELIVER_COLOR else 'left'
 			m_right.off()
 			m_left.off()
@@ -126,7 +128,7 @@ while True:
 	elif current_state == STATE_APPROACH:
 		block_color = T_PICKUP_COLOR if task_type == 'pickup' else T_DELIVER_COLOR
 
-		if s_right.color_name == block_color and s_left.color_name == block_color:
+		if (s_right.color_name == T_PICKUP_COLOR or s_right.color_name == T_DELIVER_COLOR) and (s_left.color_name == T_PICKUP_COLOR or s_left.color_name == T_DELIVER_COLOR):
 			# found the block, stop and prepare to lift
 			m_right.off()
 			m_left.off()
@@ -183,6 +185,7 @@ while True:
 		if task_type == 'pickup':
 			print("payload pickup")
 			lift.on_for_seconds(SpeedRPM(LIFT_RPM), LIFT_TIME)
+			task_type = 'deliver'
 		else:
 			print("payload drop")
 			m_right.on(APPROACH_SPEED)
@@ -206,7 +209,7 @@ while True:
 		sleep(FORWARD_AFTER_LIFT_TIME)	
 		while current_state == STATE_RETURN_TO_T:
 			print('Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name) + ' | state: ' + str(current_state))
-			if s_right.color_name == LINE_COLOR and s_left.color_name == LINE_COLOR:
+			if (s_right.color_name == LINE_COLOR or s_right.color_name == LINE_COLOR2 or s_right.color_name == LINE_COLOR3) and (s_left.color_name == LINE_COLOR or s_left.color_name == LINE_COLOR2 or s_left.color_name == LINE_COLOR3):
 				m_right.off()
 				m_left.off()
 				current_state = STATE_RETURN_TO_LINE
