@@ -5,9 +5,6 @@ from ev3dev2.sensor import INPUT_2, INPUT_3
 from ev3dev2.sensor.lego import ColorSensor
 from time import sleep
 
-# myli black jako blue
-# wykrywa dobrze red, yellow, blue tak sobie 
-
 BACKGROUND_COLOR = 'White'
 T_PICKUP_COLOR = 'Red'
 T_DELIVER_COLOR = 'Yellow'

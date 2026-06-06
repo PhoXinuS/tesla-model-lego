@@ -5,10 +5,6 @@ from ev3dev2.sensor import INPUT_2, INPUT_3
 from ev3dev2.sensor.lego import ColorSensor
 from time import sleep
 
-# myli black jako blue
-# wykrywa dobrze red, yellow, blue tak sobie 
-
-# TODO: prawy czujnik nie wykryl czerwonego
 
 BACKGROUND_COLOR = 'White'
 T_PICKUP_COLOR = 'Yellow'
@@ -16,7 +12,6 @@ T_DELIVER_COLOR = 'Red'
 LINE_COLOR = 'Black'
 LINE_COLOR2 = 'Blue'
 LINE_COLOR3 = 'Brown'
-
 
 
 SPEED = -6
@@ -173,11 +168,6 @@ while True:
 		m_right.on(APPROACH_SPEED * -1)
 		m_left.on(APPROACH_SPEED  * -1)
 		sleep(AT_BLOCK_REVERSE_TIME * 2)
-		'''while(not(s_right.color_name == block_color and s_left.color_name == block_color)):
-			print('backing into a block | ' + 'Right: '+ str(s_right.color_name) +' Left: ' + str(s_left.color_name))
-			# back into the color block again
-			m_right.on(APPROACH_SPEED * -1)
-			m_left.on(APPROACH_SPEED  * -1)'''
 		m_right.off()
 		m_left.off()
 
